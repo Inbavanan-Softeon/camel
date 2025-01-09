@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
+
+	<bean id="quartzDelay"
+		class="org.apache.camel.component.quartz.QuartzComponent">
+		<property name="properties">
+			<map>
+				<entry key="triggerStartDelay" value="60000" />
+			</map>
+		</property>
+	</bean>
+
+
+	<bean id="dataSource" class="oracle.jdbc.pool.OracleDataSource">
+		<property name="user" value="s241oradev" />
+		<property name="password" value="s241oradev" />
+		<property name="URL"
+			value="jdbc:oracle:thin:@//192.1.2.45:1521/elite19c" />
+	</bean>
+	<camelContext
+		xmlns="http://camel.apache.org/schema/spring">
+		<route id="quartz-job-route">
+			<!-- <from uri="timer://startAfterDelay?delay=60000&amp;repeatCount=1" 
+				/> -->
+			<from uri="quartz://myScheduler?cron=0+0/2+*+*+*+?" />
+			<log message="Triggerd quartz scheduler" />
+
+			<setBody>
+				<constant>SELECT * FROM LUCA_Employee_details</constant>
+			</setBody>
+			<to uri="jdbc:dataSource" />
+			<log message="Fetched Record : ${body}" />
+			<setBody>
+				<simple>UPDATE LUCA_Employee_details SET Employee_appointment_status = 'Active'
+					WHERE Employee_appointment_status = 'NotActive'</simple>
+			</setBody>
+
+			<to uri="jdbc:dataSource" />
+			<log message="Updated Record with id: ${body}" />
+
+			<log message="Database Update Successfull" />
+		</route>
+		<route id="shutdown-route">
+			<from uri="timer://shutdownTimer?repeatCount=1&amp;delay=600000" />
+			<to
+				uri="controlbus:route?routeId=quartz-job-route&amp;action=stop" />
+		</route>
+
+	</camelContext>
+
+</beans>
