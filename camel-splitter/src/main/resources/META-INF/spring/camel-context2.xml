@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+           http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+           http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
+
+	<camelContext
+		xmlns="http://camel.apache.org/schema/spring">
+		<route id="split-items-route">
+			<!-- Read the JSON file -->
+			<from
+				uri="file:src/main/resources/data/input?fileName=data.json&amp;noop=true" />
+
+
+			<unmarshal>
+				<json library="Jackson" />
+			</unmarshal>
+
+
+			<split>
+				<jsonpath>$.data.items[?(@.workListId)]</jsonpath>
+
+
+				<to uri="direct:processItem" />
+
+			</split>
+
+			
+			<to uri="log:final?showAll=true" />
+		</route>
+
+		<route id="process-split-items">
+			<from uri="direct:processItem" />
+			<log message="Processing split item: ${body}" />
+		</route>
+	</camelContext>
+</beans>

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
+
+	<bean id="splitterBean" class="Spliter.SplitId" />
+	<camelContext
+		xmlns="http://camel.apache.org/schema/spring">
+		<route id="inputRoute">
+			<from
+				uri="file:src/main/resources/data/?fileName=data.json&amp;noop=true" />
+			<unmarshal>
+				<json library="Jackson" />
+			</unmarshal>
+			<split>
+				<jsonpath>$.data.items[?(@.workListId)]</jsonpath>
+				<setBody>
+					<simple>${body}</simple>
+				</setBody>
+				<log message="Processed item: ${body[workListId]}" />
+			</split>
+			<to uri="log:final?showAll=true" />
+		</route>
+
+		<route id="filterUniqueItems">
+			<from uri="direct:processItem" />
+			<log
+				message="Processing item with WorkListId: ${body[workListId]}" />
+			<choice>
+				<when>
+					<simple>${exchangeProperty.uniqueIds} == null</simple>
+					<setProperty name="uniqueIds">
+						<constant>new java.util.ArrayList()</constant>
+					</setProperty>
+				</when>
+			</choice>
+			<bean ref="splitterBean"
+				method="addUniqueId(${body[workListId]})" />
+			<log message="Unique IDs so far: ${exchangeProperty.uniqueIds}" />
+		</route>
+
+		<route id="logUniqueItems">
+			<from uri="timer:logUniqueIds?repeatCount=1&amp;delay=5000" />
+			<bean ref="splitterBean" method="getUniqueIds" />
+			<setProperty name="data">
+				<method ref="splitterBean" method="getUniqueIds" />
+			</setProperty>
+			<log message="Unique IDs are: ${exchangeProperty.data}" />
+		</route>
+
+	</camelContext>
+</beans>

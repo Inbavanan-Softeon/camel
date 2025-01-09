@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+           http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+           http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
+
+    <camelContext xmlns="http://camel.apache.org/schema/spring">
+
+        <!-- Route to process the JSON -->
+        <route id="splitJsonArrayRoute">
+            <!-- Read JSON file -->
+            <from uri="file:src/main/resources/data/?fileName=data.json&amp;noop=true" />
+            
+            <!-- Unmarshal JSON to Java object -->
+            <unmarshal>
+                <json library="Jackson" />
+            </unmarshal>
+
+            <!-- Split items based on workListId -->
+            <split>
+                <jsonpath>$.data.items[?(@.workListId)]</jsonpath>
+                <aggregationStrategy>
+                    <ref>groupByWorkListId</ref>
+                </aggregationStrategy>
+
+                <!-- Log the split item -->
+                <log message="Processing item with WorkListId: ${body[workListId]}" />
+            </split>
+
+            <!-- Send the processed data to an output log -->
+            <to uri="log:output?showAll=true" />
+        </route>
+
+    </camelContext>
+
+    <!-- Custom aggregation strategy bean -->
+    <bean id="groupByWorkListId" class="com.example.aggregation.GroupByWorkListId" />
+
+</beans>

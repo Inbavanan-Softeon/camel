@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd ">
+<bean id="myDataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+        <property name="driverClassName" value="oracle.jdbc.OracleDriver" />
+        <property name="url" value="jdbc:oracle:thin:@//192.1.2.45:1521/elite19c" />
+        <property name="username" value="s241oradev" />
+        <property name="password" value="s241oradev" />
+    </bean>
+    
+   
+    <routeContext id="myCoolRoutes" xmlns="http://camel.apache.org/schema/spring">
+      
+        <route id="sub route">
+        <from uri="timer://myTimer?period=5000"/>
+			<setBody>
+				<simple>SELECT * FROM LUCA_Employee_details</simple>
+			</setBody>
+			<to uri="jdbc:dataSource" />
+			<log message="Fetched Record : ${body}" />
+            <log message="executed second xml from myCoolRoutes" />
+        </route>
+    </routeContext>
+
+</beans>
