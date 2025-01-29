@@ -1,0 +1,65 @@
+{
+	"id": "<uniquerequestID>",
+	"apiVersion": "1.0",
+	"context": "contextString",
+	"selfLink": "/addWorkToList",
+	"data": {
+		"kind": "PickPutInfoResponse",
+		"updated": "2021-03-28T19:29:54.001Z",
+		"totalItems": 4,
+		"items": [
+			{
+				"workListId": "123efv456",
+				"wh_id": "wh12d3",
+				"ftpCode": "SIP6-Q6-50X1",
+				"devcod": "android_mc33xx_123",
+				"seqNumber": "1",
+				"listGroupId": "abcdef",
+				"id": "8f4e56",
+				"to": "ABCD",
+				"userId": "doug123",
+				"vehicleType": "fork_truck123",
+				"leap_context": "Camel-ID-LAPTOP-0GBPVNTK-1632923912064-0-13"
+			},
+			{
+				"workListId": "123456",
+				"wh_id": "wh123",
+				"ftpCode": "SIP6-Q6-50X1",
+				"devcod": "android_mc33xx_123",
+				"seqNumber": "1",
+				"listGroupId": "abcdef",
+				"id": "45feb646",
+				"to": "ABCD",
+				"userId": "doug123",
+				"vehicleType": "fork_truck123",
+				"leap_context": "Camel-ID-LAPTOP-0GBPVNTK-1632923912064-0-16"
+			},
+			{
+				"workListId": "123456",
+				"wh_id": "wh123",
+				"ftpCode": "SIP6-Q6-50X1",
+				"devcod": "android_mc33xx_123",
+				"seqNumber": "1",
+				"listGroupId": "abcdef",
+				"id": "78ffe45g",
+				"to": "ABCD",
+				"userId": "doug123",
+				"vehicleType": "fork_truck123",
+				"leap_context": "Camel-ID-LAPTOP-0GBPVNTK-1632923912064-0-13"
+			},
+			{
+				"workListId": "123456",
+				"wh_id": "wh123",
+				"ftpCode": "SIP6-Q6-50X1",
+				"devcod": "android_mc33xx_123",
+				"seqNumber": "1",
+				"listGroupId": "abcdef",
+				"id": "8s16ag3",
+				"to": "ABCD",
+				"userId": "doug123",
+				"vehicleType": "fork_truck123",
+				"leap_context": "Camel-ID-LAPTOP-0GBPVNTK-1632923912064-0-16"
+			}
+		]
+	}
+}
