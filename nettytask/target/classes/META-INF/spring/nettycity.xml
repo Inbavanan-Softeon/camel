@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:camel="http://camel.apache.org/schema/spring"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation=" 
+          http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+          http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
+	<bean id="dataSource"
+		class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName"
+			value="oracle.jdbc.OracleDriver" />
+		<property name="url"
+			value="jdbc:oracle:thin:@//192.1.2.45:1521/elite19c" />
+		<property name="username" value="s241oradev" />
+		<property name="password" value="s241oradev" />
+	</bean>
+
+
+	<camelContext
+		xmlns="http://camel.apache.org/schema/spring">
+		<restConfiguration component="netty-http"
+			port="9191" host="localhost" bindingMode="json" />
+
+		<rest path="/api/cities">
+			<get>
+				<camel:to uri="direct:getAllCities" />
+			</get>
+			<get path="/{id}">
+				<to uri="direct:getCityById" />
+			</get>
+			<post>
+				<to uri="direct:addCity" />
+			</post>
+			<put path="/{id}">
+				<to uri="direct:updateCity" />
+			</put>
+			<delete path="/{id}">
+				<to uri="direct:deleteCity" />
+			</delete>
+		</rest>
+
+		<route id="getAllCities">
+			<from uri="netty-http:http://0.0.0.0:8080/cities" />
+			<to uri="sql:SELECT * FROM cities?dataSource=#dataSource" />
+			<marshal>
+				<json />
+			</marshal>
+		</route>
+		<route id="getCityById">
+			<from uri="netty-http:http://0.0.0.0:8080/cities/{id}" />
+			<setHeader name="id">
+				<simple>${header.id}</simple>
+			</setHeader>
+
+			<to
+				uri="sql:SELECT * FROM cities WHERE id = :#id?dataSource=#dataSource" />
+			<marshal>
+				<json />
+			</marshal>
+
+		</route>
+		<route id="addCity">
+			<from
+				uri="netty-http:http://0.0.0.0:8080/cities?httpMethodRestrict=POST" />
+			<unmarshal>
+				<json />
+			</unmarshal>
+			<setBody>
+				<simple>
+            INSERT INTO cities (name, population, area, country, coordinates) 
+            VALUES ('${body[name]}', ${body[population]}, ${body[area]}, '${body[country]}', '${body[coordinates]}')
+        </simple>
+			</setBody>
+			<to uri="sql:update?dataSource=#dataSource" />
+		</route>
+
+
+		<route id="updateCity">
+			<from
+				uri="netty-http:http://0.0.0.0:8080/cities/{id}?httpMethodRestrict=PUT" />
+			<unmarshal>
+				<json />
+			</unmarshal>
+			<setHeader name="id">
+				<simple>${header.id}</simple>
+			</setHeader>
+			<setBody>
+				<simple>
+            UPDATE cities SET name = '${body[name]}',population = ${body[population]},area = ${body[area]},country = '${body[country]}',coordinates = '${body[coordinates]}'WHERE id = :#id
+        </simple>
+			</setBody>
+			<to uri="sql:update?dataSource=#dataSource" />
+		</route>
+		<route id="deleteCity">
+			<from
+				uri="netty-http:http://0.0.0.0:8080/cities/{id}?httpMethodRestrict=DELETE" />
+			<setHeader name="id">
+				<simple>${header.id}</simple>
+			</setHeader>
+			<setBody>
+				<simple>
+            DELETE FROM cities WHERE id = :#id
+        </simple>
+			</setBody>
+			<to uri="sql:update?dataSource=#dataSource" />
+		</route>
+
+	</camelContext>
+
+
+
+</beans>
