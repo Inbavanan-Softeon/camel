@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+           http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+           http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
+
+	<camelContext
+		xmlns="http://camel.apache.org/schema/spring">
+	<route id="netty-server">
+		<from uri="netty:tcp://0.0.0.0:9999?sync=true" />
+		<log message="Received: ${body}" />
+		<setBody>
+			<simple>Response from Server: ${body}</simple>
+		</setBody>
+	</route>
+
+	<route id="netty-client">
+		<from uri="timer:tcpClient?period=5000" />
+		<setBody>
+			<constant>Hello from Camel Netty Client</constant>
+		</setBody>
+		<log message="Client sending: ${body}" />
+		<to uri="netty:tcp://localhost:9999?sync=true" />
+		<log message="Client received: ${body}" />
+	</route>
+</camelContext>
+</beans>
