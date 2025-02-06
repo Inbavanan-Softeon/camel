@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
+
+	<camelContext
+		xmlns="http://camel.apache.org/schema/spring">
+		
+			<route id="recipientlist-route">
+				<!-- Receive the client request -->
+				<from uri="rest:get:/aggregate" />
+
+				<!-- Log the incoming request -->
+				<log message="Received request for aggregation" />
+
+				<!-- Define recipient list to route to multiple endpoints -->
+				<recipientList delimiter=",">
+					<simple>http://service1.com/api/data?bridgeEndpoint=true</simple>
+					<simple>http://service2.com/api/data?bridgeEndpoint=true</simple>
+				</recipientList>
+
+				<!-- Use an aggregation strategy to combine the responses -->
+				<aggregate aggregationStrategy="CustomAggregationStrategy"
+					aggregationStrategyMethodName="aggregate" completionSize="2">
+					<correlationExpression>
+						<constant>true</constant>
+					</correlationExpression>
+				</aggregate>
+
+				<!-- Log the aggregated response -->
+				<log message="Aggregated response: ${body}" />
+
+				<!-- Send the aggregated response back to the caller -->
+				<to uri="mock:result" />
+			</route>
+	
+
+
+	</camelContext>
+	<bean id="customAggregationStrategy"
+		class="aggregate.camel.CustomAggregationStrategy" />
+
+
+</beans>
+		

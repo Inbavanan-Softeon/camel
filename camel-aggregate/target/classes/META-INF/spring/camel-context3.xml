@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
+
+
+
+	<!-- Aggregation Strategy Bean -->
+
+	<bean id="myAggregationStrategy"
+		class="com.aggregate.camel_aggregatee.myAggregationStrategy" />
+
+	<camelContext
+		xmlns="http://camel.apache.org/schema/spring">
+
+		<route id="aggregateServicesRoute">
+			<from uri="direct:start" />
+			<log message="Starting aggregation process with body: ${body}" />
+			
+			<recipientList delimiter="," >
+				<constant>direct:service1,direct:service2,direct:service3</constant>
+			</recipientList>
+           
+			<!-- Aggregation process -->
+			<aggregate strategyRef="myAggregationStrategy" completionSize="2">
+				<correlationExpression>
+					<constant>true</constant>
+				</correlationExpression>
+				<log message="Aggregated response: ${body}" />
+				<to uri="mock:result" />
+			</aggregate>
+		</route>
+		
+		<!-- Service 1 Route -->
+		<route id="service1Route">
+			<from uri="direct:service1" />
+			<log message="Calling Service 1" />
+			<setBody>
+				<constant>Response from Service 1</constant>
+			</setBody>
+		</route>
+
+		<!-- Service 2 Route -->
+		<route id="service2Route">
+			<from uri="direct:service2" />
+			<log message="Calling Service 2" />
+			<setBody>
+				<constant>Response from Service 2</constant>
+			</setBody>
+		</route>
+	
+	</camelContext>
+</beans>

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
+
+	<camelContext
+		xmlns="http://camel.apache.org/schema/spring">
+
+		<!-- Entry point route -->
+		<route id="mainRoute">
+			<from uri="direct:callServices" />
+
+			<!-- Use Recipient List to call multiple services -->
+			<recipientList>
+				<constant>direct:service1,direct:service2</constant>
+			</recipientList>
+
+			<!-- Aggregate the responses -->
+			<aggregate aggregationStrategy="myAggregationStrategy"
+				aggregationStrategyMethodName="aggregate" completionSize="2">
+
+				<correlationExpression>
+					<constant>1</constant>
+				</correlationExpression>
+				<to uri="log:aggregatedResponse?showAll=true" />
+			</aggregate>
+
+			<!-- Return the aggregated response to the client -->
+			<log message="Final response: ${body}" />
+		</route>
+
+		<!-- Mock Service 1 -->
+		<route id="service1">
+			<from uri="direct:service1" />
+			<log message="Calling Service 1..." />
+			<setBody>
+				<constant>"Response from Service 1"</constant>
+			</setBody>
+			<to uri="log:aggregatedResponse?showBody=true" />
+		</route>
+
+		<!-- Mock Service 2 -->
+		<route id="service2">
+			<from uri="direct:service2" />
+			<log message="Calling Service 2..." />
+			<setBody>
+				<constant>"Response from Service 2"</constant>
+			</setBody>
+			<to uri="log:aggregatedResponse?showBody=true" />
+		</route>
+
+	</camelContext>
+
+	<!-- Aggregation Strategy -->
+	<bean id="myAggregationStrategy"
+		class="aggregate.camel.MyAggregationStrategy" />
+
+</beans>
